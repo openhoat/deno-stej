@@ -1,0 +1,23 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Install project prerequisite
+        uses: ./.github/actions/install-action
+      - name: Check lint
+        run: vr lint
+      - name: Check format
+        run: vr format:check

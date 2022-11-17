@@ -1,0 +1,58 @@
+scripts:
+  clean:
+    desc: Clean the dist folder
+    cmd: npx rimraf dist
+  'format:check':
+    cmd: npx prettier --check .
+    desc: Format the project sources
+  'format:check:watch':
+    cmd: npx prettier --check .
+    desc: Format the project sources
+    watch: true
+  'format:fix':
+    cmd: npx prettier --write .
+    desc: Format the project sources
+  'git:commitlint':
+    cmd: npx commitlint -e ${GIT_ARGS[1]}
+    desc: Checks commit messages format
+    gitHook: commit-msg
+  'git:pre-commit':
+    cmd:
+      - vr lint
+      - vr format:check
+    desc: Checks sources before commit
+    gitHook: pre-commit
+  lint:
+    cmd: deno lint
+    desc: Lint the project sources
+  'lint:watch':
+    cmd: deno lint
+    desc: Lint the project sources
+    watch: true
+  'sonar:scan':
+    desc: Run a SonarQube scan
+    cmd:
+      - >
+        docker run --rm
+        -e SONAR_HOST_URL
+        -e SONAR_LOGIN
+        -e SONAR_SCANNER_OPTS="-Dsonar.projectBaseDir=${PWD} -Dsonar.projectVersion=$(echo "import version from './version.json' assert { type: 'json' };console.log(version)" | deno run - )"
+        -v "${PWD}:${PWD}"
+        sonarsource/sonar-scanner-cli
+  validate:
+    desc: Validate the project
+    cmd:
+      - vr clean
+      - vr lint
+      - vr format:check
+  'validate:watch':
+    desc: Validate the project in watch mode
+    cmd:
+      - vr clean
+      - pll:
+          - vr lint:watch
+          - vr format:check:watch
+  'version:update':
+    desc: Update version.json with the latest Git tag
+    cmd:
+      - echo "\"$(git describe --tags --abbrev=0)\"" > version.json
